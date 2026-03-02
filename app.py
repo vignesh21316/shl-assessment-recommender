@@ -11,7 +11,7 @@ import pandas as pd
 # ============================================================
 # CONFIG
 # ============================================================
-API_URL = "http://localhost:8000"  # Change to deployed API URL
+API_URL = "https://shl-recommender-manikanta.onrender.com"  # Change to deployed API URL
 
 st.set_page_config(
     page_title="SHL Assessment Recommender",
