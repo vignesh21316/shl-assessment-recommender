@@ -11,8 +11,10 @@ import re
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-CATALOG_FILE = "shl_catalog_enriched.json"
-EMBEDDINGS_FILE = "shl_embeddings.pkl"
+import os as _os
+_BASE = _os.path.dirname(_os.path.abspath(__file__))
+CATALOG_FILE = _os.path.join(_BASE, "shl_catalog_enriched.json")
+EMBEDDINGS_FILE = _os.path.join(_BASE, "shl_embeddings.pkl")
 
 _model = None
 
