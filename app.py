@@ -1,4 +1,3 @@
-
 """
 SHL Assessment Recommendation System — Premium UI
 """
@@ -173,14 +172,14 @@ left, right = st.columns([4, 6], gap="large")
 
 with left:
     st.markdown('<div class="section-label">Input Type</div>', unsafe_allow_html=True)
-    itype = st.radio("", ["Natural Language", "Job Description", "JD URL"], horizontal=True, label_visibility="collapsed")
+    itype = st.radio("Input Type", ["Natural Language", "Job Description", "JD URL"], horizontal=True, label_visibility="collapsed")
 
     ph = {"Natural Language": "e.g. Java developers who collaborate with business teams. Max 40 min.",
           "Job Description": "Paste the full job description here...",
           "JD URL": "https://www.linkedin.com/jobs/view/..."}
 
     st.markdown('<div class="section-label">Describe the Role</div>', unsafe_allow_html=True)
-    q = st.text_area("", height=155, placeholder=ph[itype], key="qbox",
+    q = st.text_area("Query", height=155, placeholder=ph[itype], key="qbox",
                      value=st.session_state.get("prefill",""))
 
     c1, c2 = st.columns([3,1])
