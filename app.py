@@ -1,313 +1,285 @@
+
 """
-SHL Assessment Recommendation System - Web Frontend
-Built with Streamlit
+SHL Assessment Recommendation System — Premium UI
 """
 
 import streamlit as st
 import requests
-import json
 import pandas as pd
 
-# ============================================================
-# CONFIG
-# ============================================================
-API_URL = "https://shl-recommender-manikanta.onrender.com"  # Change to deployed API URL
+API_URL = "https://shl-recommender-manikanta.onrender.com"
 
 st.set_page_config(
-    page_title="SHL Assessment Recommender",
-    page_icon="🎯",
+    page_title="SHL Recommender",
+    page_icon="⬡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ============================================================
-# STYLING
-# ============================================================
 st.markdown("""
 <style>
-    .main-header {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
-        padding: 2rem;
-        border-radius: 12px;
-        color: white;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    .assessment-card {
-        background: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
-        border-left: 4px solid #2d6a9f;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        transition: transform 0.2s;
-    }
-    .assessment-card:hover {
-        transform: translateX(4px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .badge {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 0.8em;
-        font-weight: bold;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-    .badge-A { background: #dbeafe; color: #1e40af; }
-    .badge-K { background: #d1fae5; color: #065f46; }
-    .badge-P { background: #fce7f3; color: #9d174d; }
-    .badge-C { background: #ede9fe; color: #5b21b6; }
-    .badge-B { background: #fef3c7; color: #92400e; }
-    .badge-E { background: #fee2e2; color: #991b1b; }
-    .badge-S { background: #f0fdf4; color: #166534; }
-    .badge-D { background: #f0f9ff; color: #0369a1; }
-    .metric-box {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 0.8rem;
-        text-align: center;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, .stApp { background: #0a0a0f !important; color: #e8e6f0 !important; font-family: 'DM Sans', sans-serif !important; }
+#MainMenu, footer, header { visibility: hidden; }
+.block-container { padding: 0 2rem !important; max-width: 100% !important; }
+section[data-testid="stSidebar"] { display: none; }
+
+.hero {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid #1a1a2e;
+    margin-bottom: 40px;
+}
+.hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: #6366f1; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25);
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+}
+.hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 4.5vw, 64px); font-weight: 800;
+    line-height: 1.0; letter-spacing: -0.03em; color: #ffffff; margin-bottom: 16px;
+}
+.hero-title span {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub { font-size: 16px; font-weight: 300; color: #6b6b8f; max-width: 500px; line-height: 1.7; }
+.hero-stats { display: flex; gap: 48px; margin-top: 40px; }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+.stat-label { font-size: 11px; color: #4a4a6a; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 3px; }
+
+.section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: #3a3a5a; margin-bottom: 12px; margin-top: 24px;
+}
+
+.stTextArea label { display: none !important; }
+.stTextArea textarea {
+    background: #0f0f1a !important; border: 1px solid #2a2a3e !important;
+    border-radius: 12px !important; color: #e8e6f0 !important;
+    font-family: 'DM Sans', sans-serif !important; font-size: 14px !important;
+    line-height: 1.65 !important; padding: 16px !important; resize: none !important;
+    transition: border-color 0.2s !important;
+}
+.stTextArea textarea:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important; }
+.stTextArea textarea::placeholder { color: #2a2a42 !important; }
+
+.stButton > button {
+    width: 100% !important; border-radius: 10px !important;
+    font-family: 'Syne', sans-serif !important; font-weight: 600 !important;
+    font-size: 14px !important; letter-spacing: 0.04em !important;
+    height: 48px !important; transition: all 0.2s !important; border: none !important;
+}
+div[data-testid="stButton"]:nth-of-type(1) > button {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important; color: white !important;
+}
+div[data-testid="stButton"]:nth-of-type(1) > button:hover {
+    transform: translateY(-2px) !important; box-shadow: 0 8px 25px rgba(99,102,241,0.4) !important;
+}
+
+.pipeline { margin-top: 4px; }
+.pipe-step { display: flex; align-items: flex-start; gap: 14px; padding: 11px 0; border-bottom: 1px solid #141428; }
+.pipe-step:last-child { border-bottom: none; }
+.pipe-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.pipe-body strong { font-size: 13px; font-weight: 500; color: #d0ceea; display: block; margin-bottom: 2px; }
+.pipe-body span { font-size: 11px; color: #4a4a6a; line-height: 1.5; }
+
+.result-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.result-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+.result-pill {
+    font-size: 11px; font-weight: 600; color: #6366f1;
+    background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+    padding: 4px 14px; border-radius: 100px; letter-spacing: 0.06em;
+}
+
+.mrow { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 32px; }
+.mcard { background: #0d0d18; border: 1px solid #1e1e2e; border-radius: 12px; padding: 16px 18px; }
+.mval { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; color: #fff; letter-spacing: -0.02em; line-height: 1; margin-bottom: 5px; }
+.mkey { font-size: 10px; color: #4a4a6a; text-transform: uppercase; letter-spacing: 0.13em; }
+
+.acard {
+    background: #0d0d18; border: 1px solid #1e1e2e; border-radius: 14px;
+    padding: 22px 26px; margin-bottom: 14px; transition: border-color 0.2s, transform 0.2s;
+    position: relative; overflow: hidden;
+}
+.acard:hover { border-color: #2e2e50; transform: translateX(3px); }
+.acard::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+    background: linear-gradient(180deg, #6366f1, #a855f7); border-radius: 3px 0 0 3px;
+    opacity: 0; transition: opacity 0.2s;
+}
+.acard:hover::before { opacity: 1; }
+.acard-num { font-size: 10px; font-weight: 600; color: #2e2e4a; font-family: 'Syne', sans-serif; letter-spacing: 0.12em; margin-bottom: 6px; }
+.acard-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: #fff; text-decoration: none; letter-spacing: -0.01em; }
+.acard-name:hover { color: #a5b4fc; }
+.acard-desc { font-size: 13px; color: #5a5a7a; line-height: 1.6; margin: 10px 0 14px; }
+.acard-meta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.meta-i { font-size: 12px; color: #4a4a6a; }
+.meta-i strong { color: #9090b0; font-weight: 500; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.badge { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; }
+.bA { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+.bK { background: rgba(20,184,166,0.12); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.2); }
+.bP { background: rgba(236,72,153,0.12); color: #f472b6; border: 1px solid rgba(236,72,153,0.2); }
+.bC { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+.bB { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.bE { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+.bS { background: rgba(139,92,246,0.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.2); }
+.bD { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+
+.empty { display: flex; flex-direction: column; align-items: center; padding: 80px 40px; text-align: center; }
+.empty-icon { font-size: 44px; opacity: 0.3; margin-bottom: 16px; }
+.empty-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: #2e2e4a; margin-bottom: 8px; }
+.empty-sub { font-size: 13px; color: #1e1e32; line-height: 1.65; max-width: 300px; }
+
+.hdiv { height: 1px; background: #161628; margin: 24px 0; }
+::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: #0a0a0f; } ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+.stRadio label { font-size: 13px !important; color: #6b6b8f !important; }
+.stSpinner > div { border-top-color: #6366f1 !important; }
 </style>
 """, unsafe_allow_html=True)
 
-
-# ============================================================
-# HEADER
-# ============================================================
+# HERO
 st.markdown("""
-<div class="main-header">
-    <h1>🎯 SHL Assessment Recommender</h1>
-    <p style="font-size: 1.1em; opacity: 0.9;">
-        AI-powered assessment recommendations using RAG technology.<br>
-        Enter a job description, role query, or paste a JD URL to get started.
-    </p>
+<div class="hero">
+  <div class="hero-eyebrow">⬡ RAG · FAISS · Gemini 2.0 Flash</div>
+  <div class="hero-title">Find the right<br><span>assessment, instantly.</span></div>
+  <div class="hero-sub">Semantic retrieval over 389 SHL assessments, reranked by Gemini AI. Describe any role and get a curated shortlist in seconds.</div>
+  <div class="hero-stats">
+    <div><div class="stat-num">389</div><div class="stat-label">Assessments indexed</div></div>
+    <div><div class="stat-num">~2s</div><div class="stat-label">Avg response time</div></div>
+    <div><div class="stat-num">RAG</div><div class="stat-label">Gemini reranking</div></div>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
-
-# ============================================================
-# INPUT SECTION
-# ============================================================
-col1, col2 = st.columns([3, 1])
-
-with col1:
-    input_type = st.radio(
-        "Input type:",
-        ["Natural Language Query", "Job Description Text", "JD URL"],
-        horizontal=True
-    )
-
-# Placeholders based on input type
-placeholders = {
-    "Natural Language Query": "e.g., I need to hire Java developers who can collaborate with business teams. Assessment should be under 40 minutes.",
-    "Job Description Text": "Paste the full job description here...",
-    "JD URL": "https://www.linkedin.com/jobs/view/..."
+TYPE_MAP = {
+    "Ability & Aptitude": ("A","bA"), "Knowledge & Skills": ("K","bK"),
+    "Personality & Behavior": ("P","bP"), "Personality & Behaviour": ("P","bP"),
+    "Competencies": ("C","bC"), "Biodata & Situational Judgement": ("B","bB"),
+    "Assessment Exercises": ("E","bE"), "Simulations": ("S","bS"), "Development & 360": ("D","bD"),
 }
 
-query_input = st.text_area(
-    "Your query:",
-    height=150,
-    placeholder=placeholders[input_type],
-    label_visibility="collapsed"
-)
+def badge(t):
+    for name, (letter, cls) in TYPE_MAP.items():
+        if name.lower() in t.lower():
+            return f'<span class="badge {cls}">{letter} · {name}</span>'
+    return f'<span class="badge bK">{t}</span>'
 
-col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 4])
-with col_btn1:
-    submit_btn = st.button("🔍 Get Recommendations", type="primary", use_container_width=True)
-with col_btn2:
-    clear_btn = st.button("Clear", use_container_width=True)
+left, right = st.columns([4, 6], gap="large")
 
-# Sample queries
-with st.expander("💡 Try sample queries"):
-    sample_queries = [
-        "I am hiring for Java developers who can also collaborate effectively with my business teams. Looking for an assessment that can be completed in 40 minutes.",
-        "Looking to hire mid-level professionals proficient in Python, SQL and JavaScript. Max duration 60 minutes.",
-        "I want to hire a Senior Data Analyst with 5 years of experience in SQL, Excel and Python.",
-        "Need to hire Customer Support executives expert in English communication.",
-        "I am hiring for an analyst and want to screen using Cognitive and personality tests within 45 mins.",
+with left:
+    st.markdown('<div class="section-label">Input Type</div>', unsafe_allow_html=True)
+    itype = st.radio("", ["Natural Language", "Job Description", "JD URL"], horizontal=True, label_visibility="collapsed")
+
+    ph = {"Natural Language": "e.g. Java developers who collaborate with business teams. Max 40 min.",
+          "Job Description": "Paste the full job description here...",
+          "JD URL": "https://www.linkedin.com/jobs/view/..."}
+
+    st.markdown('<div class="section-label">Describe the Role</div>', unsafe_allow_html=True)
+    q = st.text_area("", height=155, placeholder=ph[itype], key="qbox",
+                     value=st.session_state.get("prefill",""))
+
+    c1, c2 = st.columns([3,1])
+    with c1: go = st.button("⬡  Get Recommendations", type="primary")
+    with c2: st.button("Clear")
+
+    st.markdown('<div class="section-label">Quick Samples</div>', unsafe_allow_html=True)
+    samples = [
+        "Java developers, business collaboration, 40 min max",
+        "Python, SQL, JavaScript — mid-level, 60 min",
+        "Senior Data Analyst — SQL, Excel, Python",
+        "Customer support, English communication",
+        "Cognitive + personality screening, 45 min",
     ]
-    for i, q in enumerate(sample_queries):
-        if st.button(f"Sample {i+1}", key=f"sample_{i}"):
-            st.session_state["query"] = q
+    for i, s in enumerate(samples):
+        if st.button(f"↗ {s}", key=f"s{i}"):
+            st.session_state["prefill"] = s
             st.rerun()
 
-# Auto-fill from session state
-if "query" in st.session_state and not query_input:
-    query_input = st.session_state["query"]
+    st.markdown('<div class="hdiv"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Pipeline</div>', unsafe_allow_html=True)
+    st.markdown("""<div class="pipeline">
+    <div class="pipe-step"><div class="pipe-icon" style="background:rgba(99,102,241,0.12)">🕷</div><div class="pipe-body"><strong>Scrape</strong><span>389 assessments via Selenium + BeautifulSoup</span></div></div>
+    <div class="pipe-step"><div class="pipe-icon" style="background:rgba(168,85,247,0.12)">🔢</div><div class="pipe-body"><strong>Embed</strong><span>all-MiniLM-L6-v2 → 384-dim normalized vectors</span></div></div>
+    <div class="pipe-step"><div class="pipe-icon" style="background:rgba(236,72,153,0.12)">🔍</div><div class="pipe-body"><strong>Retrieve</strong><span>FAISS IndexFlatIP → top-30 candidates</span></div></div>
+    <div class="pipe-step"><div class="pipe-icon" style="background:rgba(20,184,166,0.12)">🤖</div><div class="pipe-body"><strong>Rerank</strong><span>Gemini 2.0 Flash — duration-aware selection</span></div></div>
+    <div class="pipe-step"><div class="pipe-icon" style="background:rgba(245,158,11,0.12)">✅</div><div class="pipe-body"><strong>Return</strong><span>Structured JSON: name, URL, type, duration, flags</span></div></div>
+    </div>""", unsafe_allow_html=True)
 
+with right:
+    if "prefill" in st.session_state and st.session_state["prefill"]:
+        q = st.session_state.pop("prefill")
+        go = True
 
-# ============================================================
-# RECOMMENDATION RESULTS
-# ============================================================
-def get_test_type_badge(test_type_str: str) -> str:
-    """Generate HTML badge for test type."""
-    type_map = {
-        "Ability & Aptitude": ("A", "badge-A"),
-        "Knowledge & Skills": ("K", "badge-K"),
-        "Personality & Behavior": ("P", "badge-P"),
-        "Personality & Behaviour": ("P", "badge-P"),
-        "Competencies": ("C", "badge-C"),
-        "Biodata & Situational Judgement": ("B", "badge-B"),
-        "Assessment Exercises": ("E", "badge-E"),
-        "Simulations": ("S", "badge-S"),
-        "Development & 360": ("D", "badge-D"),
-    }
-    
-    for type_name, (letter, css_class) in type_map.items():
-        if type_name.lower() in test_type_str.lower():
-            return f'<span class="badge {css_class}">{letter} {type_name}</span>'
-    
-    return f'<span class="badge badge-K">{test_type_str}</span>'
+    def show(results):
+        durs = [r.get("duration",0) for r in results if r.get("duration")]
+        types = [t for r in results for t in r.get("test_type",[])]
+        rem = sum(1 for r in results if r.get("remote_support")=="Yes")
+        avg = sum(durs)//len(durs) if durs else "—"
 
-
-def display_results(results):
-    """Display recommendation results."""
-    if not results:
-        st.warning("No recommendations found. Try a different query.")
-        return
-    
-    st.success(f"✅ Found **{len(results)} recommended assessments**")
-    
-    # Summary stats
-    col1, col2, col3, col4 = st.columns(4)
-    durations = [r.get("duration", 0) for r in results if r.get("duration")]
-    all_types = []
-    for r in results:
-        all_types.extend(r.get("test_type", []))
-    
-    with col1:
-        st.markdown(f"""<div class="metric-box"><h3>{len(results)}</h3><p>Assessments</p></div>""", unsafe_allow_html=True)
-    with col2:
-        avg_dur = sum(durations) // len(durations) if durations else 0
-        st.markdown(f"""<div class="metric-box"><h3>{avg_dur} min</h3><p>Avg Duration</p></div>""", unsafe_allow_html=True)
-    with col3:
-        unique_types = len(set(all_types))
-        st.markdown(f"""<div class="metric-box"><h3>{unique_types}</h3><p>Test Types</p></div>""", unsafe_allow_html=True)
-    with col4:
-        remote = sum(1 for r in results if r.get("remote_support") == "Yes")
-        st.markdown(f"""<div class="metric-box"><h3>{remote}/{len(results)}</h3><p>Remote Ready</p></div>""", unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # Individual cards
-    for i, result in enumerate(results, 1):
-        name = result.get("name", "Unknown Assessment")
-        url = result.get("url", "#")
-        description = result.get("description", "")
-        duration = result.get("duration", "N/A")
-        remote = result.get("remote_support", "N/A")
-        adaptive = result.get("adaptive_support", "N/A")
-        test_types = result.get("test_type", [])
-        
-        # Build type badges
-        type_badges = " ".join([get_test_type_badge(t) for t in test_types])
-        if not type_badges:
-            type_badges = '<span class="badge badge-K">General</span>'
-        
         st.markdown(f"""
-        <div class="assessment-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <h4 style="margin: 0; color: #1e3a5f;">
-                        {i}. <a href="{url}" target="_blank" style="color: #2d6a9f; text-decoration: none;">{name}</a>
-                    </h4>
-                    <p style="color: #666; margin: 0.4rem 0; font-size: 0.9em;">{description[:200] + '...' if len(description) > 200 else description}</p>
-                    <div style="margin-top: 0.5rem;">{type_badges}</div>
-                </div>
-                <div style="text-align: right; min-width: 150px; padding-left: 1rem;">
-                    <div style="font-size: 0.85em; color: #555;">
-                        ⏱️ <strong>{duration} min</strong><br>
-                        🌐 Remote: <strong>{remote}</strong><br>
-                        🔄 Adaptive: <strong>{adaptive}</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Download as CSV
-    st.markdown("### 📥 Export Results")
-    df = pd.DataFrame([{
-        "Assessment Name": r.get("name"),
-        "URL": r.get("url"),
-        "Test Types": ", ".join(r.get("test_type", [])),
-        "Duration (min)": r.get("duration"),
-        "Remote Support": r.get("remote_support"),
-        "Adaptive Support": r.get("adaptive_support"),
-    } for r in results])
-    
-    st.dataframe(df, use_container_width=True)
-    
-    csv_data = df.to_csv(index=False)
-    st.download_button(
-        "⬇️ Download CSV",
-        csv_data,
-        file_name="shl_recommendations.csv",
-        mime="text/csv"
-    )
+        <div class="result-hdr"><div class="result-title">Recommended Assessments</div><div class="result-pill">{len(results)} results</div></div>
+        <div class="mrow">
+          <div class="mcard"><div class="mval">{len(results)}</div><div class="mkey">Assessments</div></div>
+          <div class="mcard"><div class="mval">{avg}<span style="font-size:13px;color:#3a3a5a"> min</span></div><div class="mkey">Avg Duration</div></div>
+          <div class="mcard"><div class="mval">{len(set(types))}</div><div class="mkey">Test Types</div></div>
+          <div class="mcard"><div class="mval">{rem}<span style="font-size:13px;color:#3a3a5a">/{len(results)}</span></div><div class="mkey">Remote</div></div>
+        </div>""", unsafe_allow_html=True)
 
+        for i, r in enumerate(results, 1):
+            bs = "".join(badge(t) for t in r.get("test_type",[]))
+            if not bs: bs = '<span class="badge bK">General</span>'
+            desc = r.get("description","")
+            desc = desc[:175]+"…" if len(desc)>175 else desc
+            st.markdown(f"""
+            <div class="acard">
+              <div class="acard-num">#{i:02d}</div>
+              <a class="acard-name" href="{r.get('url','#')}" target="_blank">{r.get('name','Unknown')}</a>
+              <div class="badges" style="margin-top:8px">{bs}</div>
+              <div class="acard-desc">{desc}</div>
+              <div class="acard-meta">
+                <div class="meta-i">⏱ <strong>{r.get('duration','?')} min</strong></div>
+                <div style="width:3px;height:3px;background:#2a2a3e;border-radius:50%"></div>
+                <div class="meta-i">🌐 Remote: <strong>{r.get('remote_support','?')}</strong></div>
+                <div style="width:3px;height:3px;background:#2a2a3e;border-radius:50%"></div>
+                <div class="meta-i">🔄 Adaptive: <strong>{r.get('adaptive_support','?')}</strong></div>
+              </div>
+            </div>""", unsafe_allow_html=True)
 
-# ============================================================
-# HANDLE SUBMISSION
-# ============================================================
-if submit_btn and query_input:
-    with st.spinner("🔍 Analyzing query and finding best assessments..."):
-        try:
-            response = requests.post(
-                f"{API_URL}/recommend",
-                json={"query": query_input},
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                results = data.get("recommended_assessments", [])
-                display_results(results)
-            else:
-                st.error(f"API Error {response.status_code}: {response.text}")
-        
-        except requests.ConnectionError:
-            st.error("⚠️ Cannot connect to API. Make sure the FastAPI server is running!")
-            st.code("Run: python api.py", language="bash")
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
+        st.markdown('<div class="hdiv"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">Export</div>', unsafe_allow_html=True)
+        df = pd.DataFrame([{
+            "Name": r.get("name"), "URL": r.get("url"),
+            "Types": ", ".join(r.get("test_type",[])),
+            "Duration (min)": r.get("duration"),
+            "Remote": r.get("remote_support"),
+            "Adaptive": r.get("adaptive_support"),
+        } for r in results])
+        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.download_button("⬇ Download CSV", df.to_csv(index=False),
+                           file_name="shl_recommendations.csv", mime="text/csv")
 
-elif submit_btn and not query_input:
-    st.warning("Please enter a query first!")
-
-
-# ============================================================
-# SIDEBAR - API Info
-# ============================================================
-with st.sidebar:
-    st.markdown("### ℹ️ About")
-    st.markdown("""
-    This app uses **RAG (Retrieval-Augmented Generation)** to recommend SHL assessments.
-    
-    **Pipeline:**
-    1. 🕷️ Scrape SHL catalog (377+ assessments)
-    2. 🔢 Create embeddings with sentence-transformers
-    3. 🔍 Vector search with FAISS
-    4. 🤖 Rerank with Google Gemini AI
-    5. ✅ Return balanced results
-    """)
-    
-    st.markdown("### 🔗 API Docs")
-    st.markdown(f"[View API Documentation]({API_URL}/docs)")
-    
-    st.markdown("### 📊 Test Types")
-    type_info = {
-        "A": "Ability & Aptitude",
-        "B": "Biodata & SJT",
-        "C": "Competencies",
-        "D": "Development & 360",
-        "E": "Assessment Exercises",
-        "K": "Knowledge & Skills",
-        "P": "Personality & Behavior",
-        "S": "Simulations"
-    }
-    for k, v in type_info.items():
-        st.markdown(f"**{k}** - {v}")
+    if go and q and q.strip():
+        with st.spinner("Retrieving and reranking…"):
+            try:
+                resp = requests.post(f"{API_URL}/recommend", json={"query": q}, timeout=90)
+                if resp.status_code == 200:
+                    show(resp.json().get("recommended_assessments", []))
+                else:
+                    st.error(f"API error {resp.status_code}: {resp.text}")
+            except requests.ConnectionError:
+                st.error("Cannot reach API. Is it running?")
+            except Exception as e:
+                st.error(f"Error: {e}")
+    elif go:
+        st.warning("Please enter a query first.")
+    else:
+        st.markdown("""<div class="empty">
+        <div class="empty-icon">⬡</div>
+        <div class="empty-title">Ready to recommend</div>
+        <div class="empty-sub">Enter a job description or natural language query on the left to get AI-curated SHL assessment recommendations.</div>
+        </div>""", unsafe_allow_html=True)
