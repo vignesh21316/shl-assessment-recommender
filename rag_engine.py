@@ -111,7 +111,7 @@ def extract_duration_constraint(query: str) -> Optional[int]:
 
 def rerank_with_gemini(query: str, candidates: List[Dict], max_results: int = 10) -> List[Dict]:
     candidate_text = ""
-    for i, c in enumerate(candidates[:25]):
+    for i, c in enumerate(candidates[:15]):
         types = ", ".join(c.get("test_type", ["Unknown"]))
         candidate_text += f"{i+1}. {c['name']} | Types: {types} | Duration: {c.get('duration','unknown')} min | URL: {c['url']}\n"
 
@@ -142,7 +142,7 @@ Respond with ONLY a JSON array like: [1, 3, 5, 7, 9]"""
             indices = json.loads(match.group())
             selected = []
             for idx in indices:
-                if 1 <= idx <= len(candidates[:25]):
+                if 1 <= idx <= len(candidates[:15]):
                     selected.append(candidates[idx - 1])
             return selected[:max_results]
     except Exception as e:
@@ -172,7 +172,7 @@ class SHLRecommendationEngine:
     def recommend(self, query: str, max_results: int = 10) -> List[Dict]:
         if not self.loaded:
             self.initialize()
-        candidates = self.vector_store.search(query, top_k=30)
+        candidates = self.vector_store.search(query, top_k=20)
         if not candidates:
             return []
         max_duration = extract_duration_constraint(query)
